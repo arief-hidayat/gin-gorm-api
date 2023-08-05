@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  app:
+    container_name: app_cntr
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy
+#    volumes:
+#      - ./:/app
+    networks:
+      - app-net
+
+  db:
+    image: bitnami/postgresql:14.8.0
+    container_name: db_cntr
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=123456
+      - POSTGRESQL_DATABASE=postgres
+    volumes:
+      - app-db:/bitnami/postgresql
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --dbname=postgres --host=0.0.0.0 --port=5432 --username=postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+
+  pgadmin:
+    container_name: pgadmin4_cntr
+    image: dpage/pgadmin4:7.5
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+
+volumes:
+  app-db:
+    driver: local
+
+networks:
+  app-net:
+    driver: bridge
