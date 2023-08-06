@@ -45,6 +45,7 @@ func main() {
 	if err := env.Parse(&appConfig); err != nil {
 		fmt.Printf("%+v\n", err)
 	}
+	logr.Info().Msg(fmt.Sprintf("Running on :%d", appConfig.AppPort))
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", appConfig.AppPort),
 		Handler: router,
